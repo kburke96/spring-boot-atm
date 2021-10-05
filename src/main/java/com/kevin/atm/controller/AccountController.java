@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javassist.NotFoundException;
 import lombok.AllArgsConstructor;
 
-@RestController("/atm")
+@RestController
 @AllArgsConstructor
 public class AccountController {
     
