@@ -22,6 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import javassist.NotFoundException;
+
 import static org.mockito.AdditionalAnswers.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,21 +56,21 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void givenValidCredentialsShouldReturnTrue() {
+    public void givenValidCredentialsShouldReturnTrue() throws NotFoundException {
         when(accountRepo.findById(1234)).thenReturn(Optional.of(account1));
         Boolean isValidCredentials = accountService.verifyCredentials(1234, 1234);
         assertTrue(isValidCredentials);
     }
 
     @Test
-    public void givenInvalidCredentialsShouldReturnFalse() {
+    public void givenInvalidCredentialsShouldReturnFalse() throws NotFoundException {
         when(accountRepo.findById(1234)).thenReturn(Optional.of(account1));
         Boolean isValidCredentials = accountService.verifyCredentials(1234, 0000);
         assertFalse(isValidCredentials);
     }
 
     @Test
-    public void givenValidCredentialsAndCheckBalanceShouldReturnBalance() {
+    public void givenValidCredentialsAndCheckBalanceShouldReturnBalance() throws NotFoundException {
         when(accountRepo.findById(anyInt())).thenReturn(Optional.of(account1));
         double returnedBalance = accountService.checkBalance(1234, 1234);
         assertEquals(100.00, returnedBalance);
@@ -86,7 +88,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void givenValidCredentialsAndCheckAvailableFunds_shouldReturnAvailableFunds() {
+    public void givenValidCredentialsAndCheckAvailableFunds_shouldReturnAvailableFunds() throws NotFoundException {
         when(accountRepo.findById(anyInt())).thenReturn(Optional.of(account1));
         double returnedBalance = accountService.checkAvailableFunds(1234, 1234);
         assertEquals(200.00, returnedBalance);
@@ -104,7 +106,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void givenValidCredentialsAndWithdrawValidAmountShouldReturnTrue() {
+    public void givenValidCredentialsAndWithdrawValidAmountShouldReturnTrue() throws NotFoundException {
         // Account updatedAccount1 = new Account(1234,1234,90.00,100.00);
 
         when(accountRepo.findById(anyInt())).thenReturn(Optional.of(account1));
@@ -116,7 +118,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void givenValidCredentialsAndWithdrawValidAmountUsingOverdraftShouldReturnTrue() {
+    public void givenValidCredentialsAndWithdrawValidAmountUsingOverdraftShouldReturnTrue() throws NotFoundException {
         when(accountRepo.findById(anyInt())).thenReturn(Optional.of(account1));
         when(accountRepo.save(any(Account.class))).then(returnsFirstArg());
 
@@ -126,7 +128,7 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void givenValidCredentialsAndWithdrawInvalidAmountUsingOverdraftShouldReturnFalse() {
+    public void givenValidCredentialsAndWithdrawInvalidAmountUsingOverdraftShouldReturnFalse() throws NotFoundException {
         when(accountRepo.findById(anyInt())).thenReturn(Optional.of(account1));
 
         Boolean answer = accountService.withdraw(1234,1234,500.00);
@@ -135,12 +137,23 @@ public class AccountServiceTest {
     }
 
     @Test
-    public void givenInvalidCredentialsAndWithdrawShouldReturnFalse() {
+    public void givenInvalidCredentialsAndWithdrawShouldReturnFalse() throws NotFoundException {
         when(accountRepo.findById(anyInt())).thenReturn(Optional.of(account1));
 
         Boolean answer = accountService.withdraw(1234, 0000, 100.00);
 
         assertFalse(answer);
+    }
+
+    @Test
+    public void givenInvalidAccountNumberShouldThrowNotFoundError() {
+        when(accountRepo.findById(anyInt())).thenReturn(Optional.empty());
+
+        Exception thrown = assertThrows(
+            NotFoundException.class, 
+            () -> accountService.verifyCredentials(1234, 1234));
+
+        assertEquals("Cannot find account number: 1234", thrown.getMessage());
     }
     
 

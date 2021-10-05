@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javassist.NotFoundException;
 import lombok.AllArgsConstructor;
 
 @RestController("/atm")
@@ -23,7 +24,7 @@ public class AccountController {
 
     @GetMapping(value = "/balance")
     public String getBalance(@RequestParam("acct") int accountNumber,
-                                             @RequestParam("pin") int pin) {
+                                             @RequestParam("pin") int pin) throws NotFoundException {
         if (accountService.verifyCredentials(accountNumber, pin)) {
             double maxAvailable = (accountService.checkAvailableFunds(accountNumber, pin) > atmService.maxFundsAvailable()) ? atmService.maxFundsAvailable() : accountService.checkAvailableFunds(accountNumber, pin);                                         
             return "Balance: €" + accountService.checkBalance(accountNumber, pin) + ", Funds available: €" + maxAvailable;
@@ -35,7 +36,7 @@ public class AccountController {
     @PostMapping(value = "/withdraw")
     public String withdraw(@RequestParam("acct") int accountNumber,
                                             @RequestParam("pin") int pin,
-                                            @RequestParam("amount") double amountToWithdraw) {
+                                            @RequestParam("amount") double amountToWithdraw) throws NotFoundException {
         if (accountService.verifyCredentials(accountNumber, pin)) {
             if (!atmService.areFundsAvailable(amountToWithdraw)) {
                 return "Sorry, insufficient funds in ATM.";

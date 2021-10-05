@@ -7,6 +7,7 @@ import com.kevin.atm.repository.AccountRepository;
 
 import org.springframework.stereotype.Service;
 
+import javassist.NotFoundException;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -15,17 +16,20 @@ public class AccountService {
 
     private AccountRepository accountRepo; 
 
-    public Boolean verifyCredentials(int accountNumber, int pin) {
+    public Boolean verifyCredentials(int accountNumber, int pin) throws NotFoundException {
         Boolean valid = false;
 
         Optional<Account> account = accountRepo.findById(accountNumber);
+        if (account.isEmpty()) {
+            throw new NotFoundException("Cannot find account number: " + accountNumber);
+        }
         if ( account.get().getPin() == pin) {
             valid = true;
         }
         return valid;
     }
 
-    public double checkBalance(int accountNumber, int pin) {
+    public double checkBalance(int accountNumber, int pin) throws NotFoundException {
 
         if (verifyCredentials(accountNumber, pin)) {
             if (accountRepo.findById(accountNumber).get().getPin() == pin) {
@@ -38,7 +42,7 @@ public class AccountService {
         return 0;
     }
 
-    public double checkAvailableFunds(int accountNumber, int pin) {
+    public double checkAvailableFunds(int accountNumber, int pin) throws NotFoundException {
         if (verifyCredentials(accountNumber, pin)) {
             return accountRepo.findById(accountNumber).get().getBalance() + accountRepo.findById(accountNumber).get().getOverdraft();
         } else {
@@ -47,7 +51,7 @@ public class AccountService {
 
     }
 
-    public Boolean withdraw(int accountNumber, int pin, double amountToWithdraw) {
+    public Boolean withdraw(int accountNumber, int pin, double amountToWithdraw) throws NotFoundException {
         if (verifyCredentials(accountNumber, pin)) {
             if (amountToWithdraw <= (accountRepo.findById(accountNumber).get().getBalance() + accountRepo.findById(accountNumber).get().getOverdraft())) {
                 Optional<Account> optionalAccount = accountRepo.findById(accountNumber);
