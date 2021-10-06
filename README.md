@@ -72,7 +72,7 @@ localhost:8080/balance?acct=123456789&pin=1234
 
 ![GetRequestSuccess](./img/GetRequest_success.png?raw=true "Sample GET request")
 
-To request a withdrawal, send a POST request to the " with the following request parameters:
+To request a withdrawal, send a POST request to the "/withdraw" endpoint with the following request parameters:
 * acct: The account number
 * pin: The account PIN
 * amount: The amount to withdraw
